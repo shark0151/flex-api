@@ -4,18 +4,19 @@ const swaggerUI = require("swagger-ui-express");
 const swaggerJsDoc = require("swagger-jsdoc");
 const port = process.env.PORT || 3001;
 const { Sequelize } = require('sequelize');
+const sequelize = new Sequelize('postgres://flex_user:w8EUofyBa0h6obRCmlFzlEW6xMjfgDFO@dpg-cead3qmn6mphc8t5t9ng-a/flex_db')
 
 const options = {
     definition: {
         openapi: "3.0.0",
         info: {
-            title: "Goat API",
+            title: "Flex API",
             version: "1.0.0",
             description: "A simple Express API",
         },
         servers: [
             {
-                url: "https://threeam.onrender.com"
+                url: "https://flex-api-45ah.onrender.com"
             },
             {
                 url: "http://localhost:3001"
@@ -38,17 +39,12 @@ const app = express();
 
 
 app.use(express.json());
-app.use(cors());
-var indexRouter = require('./routes/index');
-var authRouter = require('./routes/auth');
+app.use(cors({ origin: ["https://flex-api-45ah.onrender.com", "http://localhost:"+ port], credentials: true}));
 
-app.use('/', indexRouter);
-app.use('/auth', authRouter);
 app.get('/', (req, res) => res.json({ message: 'Hello World' }))
 app.use("/docs", swaggerUI.serve, swaggerUI.setup(specs));
 
-var db = require('./db');
-const User = db.define('user', {
+const User = sequelize.define('user', {
 
     // attributes
 
@@ -74,38 +70,119 @@ const User = db.define('user', {
 
 });
 
+const Fav = sequelize.define('favorites', {
+
+    // attributes
+    user_id: {
+        type: Sequelize.INTEGER,
+        allowNull: false
+    },
+
+    movie_id: {
+
+        type: Sequelize.INTEGER,
+
+        allowNull: false
+
+    }
+}, {
+
+    // options
+
+});
+
 User.sync({ force: true }).then(() => {
-    // Now the `users` table in the database corresponds to the model definition
+
     return User.create({
-        name: 'John',
+        name: 'Jim',
         password: '1234'
+    });
+});
+
+Fav.sync({ force: true }).then(() => {
+
+    return Fav.create({
+        user_id: 1,
+        movie_id: 1
     });
 });
 
 app.get('/user/:userId', async (req, res) => {
 
     const userId = req.params.userId
-
     try {
-
         const user = await User.findAll({
-
             where: {
-
                 id: userId
-
             }
-
-        }
-
-        )
-
+        })
         res.json({ user })
 
     } catch (error) {
-
         console.error(error)
+    }
+})
 
+app.post('/user', async (req, res) => {
+
+    const { name, password } = req.body
+    try {
+        const user = await User.create({
+            name: name,
+            password: password
+        })
+        res.json({ user })
+    } catch (error) {
+        console.error(error)
+    }
+
+})
+
+app.post('/login', async (req, res) => {
+
+    const { name, password } = req.body
+    try {
+        const user = await User.findAll({
+            where: {
+                name: name,
+                password: password
+            }
+        })
+        res.json({ user })
+    } catch (error) {
+        console.error(error)
+    }
+
+})
+
+app.get('/favorites/:userId', async (req, res) => {
+
+    const userId = req.params.userId
+    try {
+        const favs = await Fav.findAll({
+            where: {
+                user_id: userId
+            }
+        }
+        )
+        res.json({ favs })
+    } catch (error) {
+        console.error(error)
+    }
+
+})
+
+app.post('/favorites', async (req, res) => {
+
+    const { user_id, movie_id } = req.body
+    try {
+        const fav = await Fav.create({
+            user_id: user_id,
+            movie_id: movie_id
+        })
+        res.json({ fav })
+    } catch (error) {
+        console.error(error)
     }
 
 })
