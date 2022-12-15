@@ -122,6 +122,15 @@ app.post('/signup', async (req, res) => {
 
     const { name, password } = req.body
     try {
+        const a = await User.findAll({
+            where: {
+                name: name,
+                password: password
+            }
+        })
+        if (a.length > 0) {
+            return res.status(401).send('User already exists');
+        }
         const user = await User.create({
             name: name,
             password: password
@@ -145,6 +154,9 @@ app.post('/login', async (req, res) => {
                 password: password
             }
         })
+        if (user.length === 0) {
+            return res.status(401).send('Wrong username or password');
+        }
         return res.cookie('user_id', user.id, { maxAge: 900000, httpOnly: true }).json({ user });
     } catch (error) {
         console.error(error)
