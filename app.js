@@ -110,14 +110,15 @@ app.get('/user/:userId', async (req, res) => {
                 id: userId
             }
         })
-        res.json({ user })
+        return res.json({ user });
 
     } catch (error) {
         console.error(error)
     }
+    
 })
 
-app.post('/user', async (req, res) => {
+app.post('/signup', async (req, res) => {
 
     const { name, password } = req.body
     try {
@@ -125,9 +126,11 @@ app.post('/user', async (req, res) => {
             name: name,
             password: password
         })
-        res.json({ user })
+        
+        return res.cookie('user_id', user.id, { maxAge: 900000, httpOnly: true }).json({ user });
     } catch (error) {
         console.error(error)
+        return res.status(401).send('Wrong username or password');
     }
 
 })
@@ -142,10 +145,10 @@ app.post('/login', async (req, res) => {
                 password: password
             }
         })
-        res.json({ user })
-        res.cookie('user_id', user.id, { maxAge: 900000, httpOnly: true });
+        return res.cookie('user_id', user.id, { maxAge: 900000, httpOnly: true }).json({ user });
     } catch (error) {
         console.error(error)
+        return res.status(401).send('Wrong username or password');
     }
 
 })
@@ -160,9 +163,10 @@ app.get('/favorites/:userId', async (req, res) => {
             }
         }
         )
-        res.json({ favs })
+        return res.json({ favs })
     } catch (error) {
         console.error(error)
+        return res.status(400).send('Something went wrong');
     }
 
 })
@@ -175,9 +179,10 @@ app.post('/favorites', async (req, res) => {
             user_id: user_id,
             movie_id: movie_id
         })
-        res.json({ fav })
+        return res.json({ fav })
     } catch (error) {
         console.error(error)
+        return res.status(400).send('Something went wrong');
     }
 
 })
