@@ -41,7 +41,7 @@ const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors()); //{ origin: ["https://flex-app.onrender.com", "http://localhost:4200"], credentials: true}
+app.use(cors({ credentials: true })); //{ origin: ["https://flex-app.onrender.com", "http://localhost:4200"], credentials: true}
 
 app.get('/', (req, res) => res.json({ message: 'Hello World' }))
 app.use("/docs", swaggerUI.serve, swaggerUI.setup(specs));
@@ -115,7 +115,7 @@ app.get('/user/:userId', async (req, res) => {
     } catch (error) {
         console.error(error)
     }
-    
+
 })
 
 app.post('/signup', async (req, res) => {
@@ -135,7 +135,7 @@ app.post('/signup', async (req, res) => {
             name: name,
             password: password
         })
-        
+
         return res.cookie('user_id', user.id, { maxAge: 900000, httpOnly: false }).json({ user });
     } catch (error) {
         console.error(error)
