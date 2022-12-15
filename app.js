@@ -2,6 +2,7 @@ var express = require('express');
 const cors = require("cors");
 const swaggerUI = require("swagger-ui-express");
 const swaggerJsDoc = require("swagger-jsdoc");
+var cookieParser = require('cookie-parser')
 const port = process.env.PORT || 3001;
 const { Sequelize } = require('sequelize');
 const sequelize = new Sequelize('postgres://flex_user:w8EUofyBa0h6obRCmlFzlEW6xMjfgDFO@dpg-cead3qmn6mphc8t5t9ng-a/flex_db')
@@ -39,6 +40,7 @@ const app = express();
 
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(cors({ origin: ["https://flex-api-45ah.onrender.com", "http://localhost:"+ port], credentials: true}));
 
 app.get('/', (req, res) => res.json({ message: 'Hello World' }))
@@ -93,18 +95,10 @@ const Fav = sequelize.define('favorites', {
 
 User.sync({ force: true }).then(() => {
 
-    return User.create({
-        name: 'Jim',
-        password: '1234'
-    });
 });
 
 Fav.sync({ force: true }).then(() => {
 
-    return Fav.create({
-        user_id: 1,
-        movie_id: 1
-    });
 });
 
 app.get('/user/:userId', async (req, res) => {
@@ -149,6 +143,7 @@ app.post('/login', async (req, res) => {
             }
         })
         res.json({ user })
+        res.cookie('user_id', user.id, { maxAge: 900000, httpOnly: true });
     } catch (error) {
         console.error(error)
     }
