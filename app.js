@@ -37,8 +37,6 @@ const specs = swaggerJsDoc(options);
 
 const app = express();
 
-
-
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({ credentials: true })); //{ origin: ["https://flex-app.onrender.com", "http://localhost:4200"], credentials: true}
@@ -157,7 +155,7 @@ app.post('/login', async (req, res) => {
         if (user.length === 0) {
             return res.status(401).send('Wrong username or password');
         }
-        
+
         return res.cookie('user_id', user.id, { maxAge: 900000, httpOnly: false }).json({ user });
     } catch (error) {
         console.error(error)
