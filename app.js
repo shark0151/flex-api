@@ -3,6 +3,7 @@ const cors = require("cors");
 const swaggerUI = require("swagger-ui-express");
 const swaggerJsDoc = require("swagger-jsdoc");
 const port = process.env.PORT || 3001;
+const { Sequelize } = require('sequelize');
 
 const options = {
     definition: {
