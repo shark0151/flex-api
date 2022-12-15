@@ -136,7 +136,7 @@ app.post('/signup', async (req, res) => {
             password: password
         })
         
-        return res.cookie('user_id', user.id, { maxAge: 900000, httpOnly: true }).json({ user });
+        return res.cookie('user_id', user.id, { maxAge: 900000, httpOnly: false }).json({ user });
     } catch (error) {
         console.error(error)
         return res.status(401).send('Wrong username or password');
@@ -157,7 +157,7 @@ app.post('/login', async (req, res) => {
         if (user.length === 0) {
             return res.status(401).send('Wrong username or password');
         }
-        return res.cookie('user_id', user.id, { maxAge: 900000, httpOnly: true }).json({ user });
+        return res.cookie('user_id', user.id, { maxAge: 900000, httpOnly: false }).json({ user });
     } catch (error) {
         console.error(error)
         return res.status(401).send('Wrong username or password');
