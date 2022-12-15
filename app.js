@@ -41,9 +41,9 @@ const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({origin:["*"] ,credentials: true })); //{ origin: ["https://flex-app.onrender.com", "http://localhost:4200"], credentials: true}
+app.use(cors({credentials: true })); //{ origin: ["https://flex-app.onrender.com", "http://localhost:4200"], credentials: true}
 
-app.get('/', (req, res) => res.json({ message: 'Hello World' }).cookie('user_id', '123', { maxAge: 900000, httpOnly: false }))
+app.get('/', (req, res) => res.json({ message: 'Hello World' }).cookie('user_id', '123', { maxAge: 900000, httpOnly: false }).cookie('Set-Cookie', 'HttpOnly;Secure;SameSite=Strict'));
 app.use("/docs", swaggerUI.serve, swaggerUI.setup(specs));
 
 const User = sequelize.define('user', {
