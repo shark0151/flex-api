@@ -41,7 +41,7 @@ const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({ origin: ["https://flex-api-45ah.onrender.com", "http://localhost:"+ port], credentials: true}));
+app.use(cors()); //{ origin: ["https://flex-app.onrender.com", "http://localhost:4200"], credentials: true}
 
 app.get('/', (req, res) => res.json({ message: 'Hello World' }))
 app.use("/docs", swaggerUI.serve, swaggerUI.setup(specs));
