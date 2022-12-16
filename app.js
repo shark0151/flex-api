@@ -24,7 +24,7 @@ const options = {
             }
         ],
     },
-    apis: ["./routes/*.js"],
+    apis: ["./app.js"],
 };
 const specs = swaggerJsDoc(options);
 
@@ -84,6 +84,10 @@ const Fav = sequelize.define('favorites', {
 
         allowNull: false
 
+    },
+    is_TV: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false
     }
 }, {
 
@@ -184,11 +188,12 @@ app.get('/favorites/:userId', async (req, res) => {
 
 app.post('/favorites', async (req, res) => {
 
-    const { user_id, movie_id } = req.body
+    const { user_id, movie_id, is_TV } = req.body
     try {
         const fav = await Fav.create({
             user_id: user_id,
-            movie_id: movie_id
+            movie_id: movie_id,
+            is_TV: is_TV
         })
         return res.json({ fav })
     } catch (error) {
