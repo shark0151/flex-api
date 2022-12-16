@@ -194,9 +194,10 @@ app.post('/favorites', async (req, res) => {
             where: {
                 user_id: user_id,
                 movie_id: movie_id,
+                is_TV: is_TV
             }
         })
-        if (isfav.length === 0) {
+        if (isfav.length > 0) {
             return res.status(401).send('Already favourited');
         }
         const fav = await Fav.create({
