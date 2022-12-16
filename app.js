@@ -190,6 +190,15 @@ app.post('/favorites', async (req, res) => {
 
     const { user_id, movie_id, is_TV } = req.body
     try {
+        const isfav = await Fav.findAll({
+            where: {
+                user_id: user_id,
+                movie_id: movie_id,
+            }
+        })
+        if (isfav.length === 0) {
+            return res.status(401).send('Already favourited');
+        }
         const fav = await Fav.create({
             user_id: user_id,
             movie_id: movie_id,
@@ -203,4 +212,44 @@ app.post('/favorites', async (req, res) => {
 
 })
 
-app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+app.get('/favorites/:userId/:movieId', async (req, res) => {
+
+    const userId = req.params.userId
+    const movieId = req.params.movieId
+    try {
+        const fav = await Fav.findAll({
+            where: {
+                user_id: userId,
+                movie_id: movieId
+            }
+        })
+        const isfav = fav.length > 0
+        return res.json({ isfav })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).send('Something went wrong');
+    }
+
+})
+
+app.delete('/favorites/:userId/:movieId', async (req, res) => {
+
+    const userId = req.params.userId
+    const movieId = req.params.movieId
+    try {
+        const fav = await Fav.destroy({
+            where: {
+                user_id: userId,
+                movie_id: movieId
+            }
+        })
+        return res.json({ fav })
+    } catch (error) {
+        console.error(error)
+        return res.status(400).send('Something went wrong');
+    }
+
+})
+
+
+app.listen(port, () => console.log(`Flex-Api listening on port ${port}!`));
