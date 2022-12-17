@@ -137,8 +137,7 @@ app.post('/signup', async (req, res) => {
             name: name,
             password: password
         })
-        res.cookie('user_id', user.id, { maxAge: 900000 })
-        return res.json({ user });
+        return res.cookie('user_id', user.id, { maxAge: 900000, httpOnly: false }).json({ user });
     } catch (error) {
         console.error(error)
         return res.status(401).send('Wrong username or password');
@@ -150,13 +149,13 @@ app.post('/login', async (req, res) => {
 
     const { name, password } = req.body
     try {
-        const user = await User.findAll({
+        const user = await User.findOne({
             where: {
                 name: name,
                 password: password
             }
         })
-        if (user.length === 0) {
+        if (user === null) {
             return res.status(401).send('Wrong username or password');
         }
 
