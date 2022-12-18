@@ -35,7 +35,7 @@ const app = express();
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(csurf());
+app.use(csurf({ cookie: true }));
 app.use(cors({
   origin: ["https://flex-app.onrender.com",
     "http://localhost:4200",
