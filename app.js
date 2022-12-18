@@ -35,7 +35,6 @@ var csrfProtection = csurf({ cookie: true })
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(csrfProtection());
 app.use(cors({ credentials: true })); //{ origin: ["https://flex-app.onrender.com", "http://localhost:4200"], credentials: true}
 
 app.get("/", (req, res) => res.json({ message: "Hello World" }));
