@@ -42,6 +42,7 @@ app.get("/", (req, res) => res.json({ message: "Hello World" }));
 app.use("/docs", swaggerUI.serve, swaggerUI.setup(specs));
 app.get('/csrfEndpoint', csrfProtection, (req, res, next) => {
   res.cookie('XSRF-TOKEN', req.csrfToken(), { httpOnly: false });
+  return res.json({ message: "CSRF token set" });
   });
 
 const User = sequelize.define(
