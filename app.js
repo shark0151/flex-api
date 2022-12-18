@@ -35,14 +35,22 @@ var csrfProtection = csurf({ cookie: true })
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({ origin: ["https://flex-app.onrender.com", "http://localhost:4200",'http://127.0.0.1:4200',"130.225.244.180:4200"], credentials: true})); //{ origin: ["https://flex-app.onrender.com", "http://localhost:4200"], credentials: true}
+app.use(cors({
+  origin: ["https://flex-app.onrender.com",
+    "http://localhost:4200",
+    'http://127.0.0.1:4200',
+    "130.225.244.180:4200",
+    '100.20.92.101',
+    '44.225.181.72',
+    '44.227.217.144'], credentials: true
+})); //{ origin: ["https://flex-app.onrender.com", "http://localhost:4200"], credentials: true}
 
 app.get("/", (req, res) => res.json({ message: "Hello World" }));
 app.use("/docs", swaggerUI.serve, swaggerUI.setup(specs));
 app.get('/csrfEndpoint', csrfProtection, (req, res, next) => {
   res.cookie('XSRF-TOKEN', req.csrfToken(), { httpOnly: true });
   return res.json({ message: "CSRF token set" });
-  });
+});
 
 const User = sequelize.define(
   "user",
@@ -135,7 +143,7 @@ Fav.sync({ force: true }).then(() => { });
  */
 
 
-app.get("/user/:userId" ,  async (req, res) => {
+app.get("/user/:userId", async (req, res) => {
   const userId = req.params.userId;
   try {
     const authuser = await User.findOne({
@@ -213,7 +221,7 @@ app.post("/signup", async (req, res) => {
       { transaction: t }
     );
     await t.commit();
-    
+
     if (!newuser) {
       return res.status(401).send("something went wrong");
     }
@@ -561,7 +569,7 @@ app.get("/favorites/:userId/:movieId", async (req, res) => {
  *                     is_TV: false
  */
 
-app.delete("/favorites/:userId/:movieId",async (req, res) => {
+app.delete("/favorites/:userId/:movieId", async (req, res) => {
   const userId = req.params.userId;
   const movieId = req.params.movieId;
   const t = await sequelize.transaction();
