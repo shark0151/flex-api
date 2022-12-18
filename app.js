@@ -1,30 +1,30 @@
-var express = require('express');
+var express = require("express");
 const cors = require("cors");
 const swaggerUI = require("swagger-ui-express");
 const swaggerJsDoc = require("swagger-jsdoc");
-var cookieParser = require('cookie-parser')
+var cookieParser = require("cookie-parser");
 const port = process.env.PORT || 3001;
-const { Sequelize } = require('sequelize');
-const sequelize = new Sequelize('postgres://flex_user:w8EUofyBa0h6obRCmlFzlEW6xMjfgDFO@dpg-cead3qmn6mphc8t5t9ng-a/flex_db')
+const { Sequelize } = require("sequelize");
+const sequelize = new Sequelize("postgres://flex_user:w8EUofyBa0h6obRCmlFzlEW6xMjfgDFO@dpg-cead3qmn6mphc8t5t9ng-a/flex_db");
 
 const options = {
-    definition: {
-        openapi: "3.0.0",
-        info: {
-            title: "Flex API",
-            version: "1.0.0",
-            description: "A simple Express API",
-        },
-        servers: [
-            {
-                url: "https://flex-api-45ah.onrender.com"
-            },
-            {
-                url: "http://localhost:3001"
-            }
-        ],
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "Flex API",
+      version: "1.0.0",
+      description: "A simple Express API",
     },
-    apis: ["./app.js"],
+    servers: [
+      {
+        url: "https://flex-api-45ah.onrender.com",
+      },
+      {
+        url: "http://localhost:3001",
+      },
+    ],
+  },
+  apis: ["./app.js"],
 };
 const specs = swaggerJsDoc(options);
 
@@ -41,215 +41,527 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(cors({ credentials: true })); //{ origin: ["https://flex-app.onrender.com", "http://localhost:4200"], credentials: true}
 
-app.get('/', (req, res) => res.json({ message: 'Hello World' }))
+app.get("/", (req, res) => res.json({ message: "Hello World" }));
 app.use("/docs", swaggerUI.serve, swaggerUI.setup(specs));
 
-const User = sequelize.define('user', {
-
+const User = sequelize.define(
+  "user",
+  {
     // attributes
-
     name: {
-
-        type: Sequelize.STRING,
-
-        allowNull: false
-
+      type: Sequelize.STRING,
+      allowNull: false,
     },
-
     password: {
-
-        type: Sequelize.STRING,
-
-        allowNull: false
-
-    }
-
-}, {
-
+      type: Sequelize.STRING,
+      allowNull: false,
+    },
+  },
+  {
     // options
+  }
+);
 
-});
-
-const Fav = sequelize.define('favorites', {
-
+const Fav = sequelize.define(
+  "favorites",
+  {
     // attributes
     user_id: {
-        type: Sequelize.INTEGER,
-        allowNull: false
+      type: Sequelize.INTEGER,
+      allowNull: false,
     },
-
     movie_id: {
+      type: Sequelize.INTEGER,
 
-        type: Sequelize.INTEGER,
-
-        allowNull: false
-
+      allowNull: false,
     },
     is_TV: {
-        type: Sequelize.BOOLEAN,
-        allowNull: false
-    }
-}, {
-
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+    },
+  },
+  {
     // options
+  }
+);
 
+User.sync({ force: true }).then(() => { });
+
+Fav.sync({ force: true }).then(() => { });
+
+/**
+ * @swagger
+ * /user/{userId}:
+ *   get:
+ *     summary: Login with password
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Numeric ID of the user to get
+ *     responses:
+ *       400:
+ *         description: Please fill out all fields
+ *       401:
+ *         description: authentication failed
+ *       500:
+ *         description: Internal server error
+ *       200:
+ *         description: Logged in successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 user:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       description: User ID
+ *                     name:
+ *                       type: string
+ *                       description: Username
+ *                     password:
+ *                       type: string
+ *                       description: Password
+ *                   example:
+ *                     id: 1
+ *                     name: JohnnyBoy
+ *                     password: Password123
+ */
+
+
+app.get("/user/:userId", async (req, res) => {
+  const userId = req.params.userId;
+  try {
+    const user = await User.findAll({
+      where: {
+        id: userId,
+      },
+    });
+    return res.json({ user });
+  } catch (error) {
+    console.error(error);
+  }
 });
 
-User.sync({ force: true }).then(() => {
 
+/**
+ * @swagger
+ * /signup:
+ *   post:
+ *     summary: Sign up with password
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Username
+ *               password:
+ *                 type: string
+ *                 description: Password
+ *             example:
+ *               username: JohnnyBoy
+ *               password: Password123
+ *     responses:
+ *       400:
+ *         description: Please fill out all fields
+ *       401:
+ *         description: User already exists
+ *       500:
+ *         description: Internal server error
+ *       200:
+ *         description: signed up successfully
+ */
+
+
+app.post("/signup", async (req, res) => {
+  const { name, password } = req.body;
+  const t = await sequelize.transaction();
+  try {
+    const a = await User.findAll({
+      where: {
+        name: name,
+        password: password,
+      },
+    });
+    if (a.length > 0) {
+      return res.status(401).send("User already exists");
+    }
+    const user = await User.create(
+      {
+        name: name,
+        password: password,
+      },
+      { transaction: t }
+    );
+    await t.commit();
+    return res
+      .cookie("user_id", user.id, { maxAge: 900000, httpOnly: false })
+      .json({ user });
+  } catch (error) {
+    console.error(error);
+    await t.rollback();
+    return res.status(401).send("Wrong username or password");
+  }
 });
 
-Fav.sync({ force: true }).then(() => {
+/**
+ * @swagger
+ * /login:
+ *   post:
+ *     summary: Login with password
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 description: Username
+ *               password:
+ *                 type: string
+ *                 description: Password
+ *             example:
+ *               username: JohnnyBoy
+ *               password: Password123
+ *     responses:
+ *       400:
+ *         description: Please fill out all fields
+ *       401:
+ *         description: authentication failed
+ *       500:
+ *         description: Internal server error
+ *       200:
+ *         description: Logged in successfully
+ */
 
+app.post("/login", async (req, res) => {
+  const { name, password } = req.body;
+  try {
+    const user = await User.findOne({
+      where: {
+        name: name,
+        password: password,
+      },
+    });
+    if (user === null) {
+      return res.status(401).send("Wrong username or password");
+    }
+
+    return res
+      .cookie("user_id", user.id, { maxAge: 900000, httpOnly: false })
+      .json({ user });
+  } catch (error) {
+    console.error(error);
+    return res.status(401).send("Wrong username or password");
+  }
 });
 
-app.get('/user/:userId', async (req, res) => {
+/**
+ * @swagger
+ * /favorites/{userId}:
+ *   get:
+ *     summary: Get favorites of user
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Numeric ID of the user to get
+ *     responses:
+ *       400:
+ *         description: Something went wrong
+ *       401:
+ *         description: authentication failed
+ *       500:
+ *         description: Internal server error
+ *       200:
+ *         description: Favorites retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 favs:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         description: Favorite ID
+ *                       user_id:
+ *                         type: integer
+ *                         description: User ID
+ *                       movie_id:
+ *                         type: integer
+ *                         description: Movie ID
+ *                       is_TV:
+ *                         type: boolean
+ *                         description: Is a TV show
+ *                   example:
+ *                     - id: 1
+ *                       user_id: 1
+ *                       movie_id: 1
+ *                       is_TV: false
+ */
 
-    const userId = req.params.userId
-    try {
-        const user = await User.findAll({
-            where: {
-                id: userId
-            }
-        })
-        return res.json({ user });
+app.get("/favorites/:userId", async (req, res) => {
+  const userId = req.params.userId;
+  try {
+    const favs = await Fav.findAll({
+      where: {
+        user_id: userId,
+      },
+    });
+    return res.json({ favs });
+  } catch (error) {
+    console.error(error);
+    return res.status(400).send("Something went wrong");
+  }
+});
 
-    } catch (error) {
-        console.error(error)
+/**
+ * @swagger
+ * /favorites:
+ *   post:
+ *     summary: Add favorite
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               user_id:
+ *                 type: integer
+ *                 description: User ID
+ *               movie_id:
+ *                 type: integer
+ *                 description: Movie ID
+ *               is_TV:
+ *                 type: boolean
+ *                 description: Is a TV show
+ *             example:
+ *               user_id: 1
+ *               movie_id: 1
+ *               is_TV: false
+ *     responses:
+ *       400:
+ *         description: Please fill out all fields
+ *       401:
+ *         description: authentication failed
+ *       500:
+ *         description: Internal server error
+ *       200:
+ *         description: Logged in successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 fav:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       description: Favorite ID
+ *                     user_id:
+ *                       type: integer
+ *                       description: User ID
+ *                     movie_id:
+ *                       type: integer
+ *                       description: Movie ID
+ *                     is_TV:
+ *                       type: boolean
+ *                       description: Is a TV show
+ *                   example:
+ *                     id: 1
+ *                     user_id: 1
+ *                     movie_id: 1
+ *                     is_TV: false
+ */
+
+app.post("/favorites", async (req, res) => {
+  const t = await sequelize.transaction();
+  const { user_id, movie_id, is_TV } = req.body;
+  try {
+    const isfav = await Fav.findAll(
+      {
+        where: {
+          user_id: user_id,
+          movie_id: movie_id,
+          is_TV: is_TV,
+        },
+      },
+      { transaction: t }
+    );
+    if (isfav.length > 0) {
+      return res.status(401).send("Already favourited");
     }
+    const fav = await Fav.create({
+      user_id: user_id,
+      movie_id: movie_id,
+      is_TV: is_TV,
+    });
+    await t.commit();
+    return res.json({ fav });
+  } catch (error) {
+    console.error(error);
+    await t.rollback();
+    return res.status(400).send("Something went wrong");
+  }
+});
 
-})
+/**
+ * @swagger
+ * /favorites/{userId}/{movieId}:
+ *   get:
+ *     summary: Get favorites of user
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Numeric ID of the user to get
+ *       - in: path
+ *         name: movieId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Numeric ID of the movie to get
+ *     responses:
+ *       400:
+ *         description: Something went wrong
+ *       401:
+ *         description: authentication failed
+ *       500:
+ *         description: Internal server error
+ *       200:
+ *         description: Favorites retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 isfav:
+ *                   type: boolean
+ *                   description: Movie is favorited by user
+ *                   example: true
+ */
 
-app.post('/signup', async (req, res) => {
+app.get("/favorites/:userId/:movieId", async (req, res) => {
+  const userId = req.params.userId;
+  const movieId = req.params.movieId;
+  try {
+    const fav = await Fav.findAll({
+      where: {
+        user_id: userId,
+        movie_id: movieId,
+      },
+    });
+    const isfav = fav.length > 0;
+    return res.json({ isfav });
+  } catch (error) {
+    console.error(error);
+    return res.status(400).send("Something went wrong");
+  }
+});
 
-    const { name, password } = req.body
-    try {
-        const a = await User.findAll({
-            where: {
-                name: name,
-                password: password
-            }
-        })
-        if (a.length > 0) {
-            return res.status(401).send('User already exists');
-        }
-        const user = await User.create({
-            name: name,
-            password: password
-        })
-        return res.cookie('user_id', user.id, { maxAge: 900000, httpOnly: false }).json({ user });
-    } catch (error) {
-        console.error(error)
-        return res.status(401).send('Wrong username or password');
-    }
+/**
+ * @swagger
+ * /favorites/{userId}/{movieId}:
+ *   delete:
+ *     summary: Delete favorite of user
+ *     tags: [Auth]
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Numeric ID of the user to get
+ *       - in: path
+ *         name: movieId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: Numeric ID of the movie to get
+ *     responses:
+ *       400:
+ *         description: Something went wrong
+ *       401:
+ *         description: authentication failed
+ *       500:
+ *         description: Internal server error
+ *       200:
+ *         description: Favorites retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 fav:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       description: Favorite ID
+ *                     user_id:
+ *                       type: integer
+ *                       description: User ID
+ *                     movie_id:
+ *                       type: integer
+ *                       description: Movie ID
+ *                     is_TV:
+ *                       type: boolean
+ *                       description: Is a TV show
+ *                   example:
+ *                     id: 1
+ *                     user_id: 1
+ *                     movie_id: 1
+ *                     is_TV: false
+ */
 
-})
-
-app.post('/login', async (req, res) => {
-
-    const { name, password } = req.body
-    try {
-        const user = await User.findOne({
-            where: {
-                name: name,
-                password: password
-            }
-        })
-        if (user === null) {
-            return res.status(401).send('Wrong username or password');
-        }
-
-        return res.cookie('user_id', user.id, { maxAge: 900000, httpOnly: false }).json({ user });
-    } catch (error) {
-        console.error(error)
-        return res.status(401).send('Wrong username or password');
-    }
-
-})
-
-app.get('/favorites/:userId', async (req, res) => {
-
-    const userId = req.params.userId
-    try {
-        const favs = await Fav.findAll({
-            where: {
-                user_id: userId
-            }
-        }
-        )
-        return res.json({ favs })
-    } catch (error) {
-        console.error(error)
-        return res.status(400).send('Something went wrong');
-    }
-
-})
-
-app.post('/favorites', async (req, res) => {
-
-    const { user_id, movie_id, is_TV } = req.body
-    try {
-        const isfav = await Fav.findAll({
-            where: {
-                user_id: user_id,
-                movie_id: movie_id,
-                is_TV: is_TV
-            }
-        })
-        if (isfav.length > 0) {
-            return res.status(401).send('Already favourited');
-        }
-        const fav = await Fav.create({
-            user_id: user_id,
-            movie_id: movie_id,
-            is_TV: is_TV
-        })
-        return res.json({ fav })
-    } catch (error) {
-        console.error(error)
-        return res.status(400).send('Something went wrong');
-    }
-
-})
-
-app.get('/favorites/:userId/:movieId', async (req, res) => {
-
-    const userId = req.params.userId
-    const movieId = req.params.movieId
-    try {
-        const fav = await Fav.findAll({
-            where: {
-                user_id: userId,
-                movie_id: movieId
-            }
-        })
-        const isfav = fav.length > 0
-        return res.json({ isfav })
-    } catch (error) {
-        console.error(error)
-        return res.status(400).send('Something went wrong');
-    }
-
-})
-
-app.delete('/favorites/:userId/:movieId', async (req, res) => {
-
-    const userId = req.params.userId
-    const movieId = req.params.movieId
-    try {
-        const fav = await Fav.destroy({
-            where: {
-                user_id: userId,
-                movie_id: movieId
-            }
-        })
-        return res.json({ fav })
-    } catch (error) {
-        console.error(error)
-        return res.status(400).send('Something went wrong');
-    }
-
-})
-
+app.delete("/favorites/:userId/:movieId", async (req, res) => {
+  const userId = req.params.userId;
+  const movieId = req.params.movieId;
+  const t = await sequelize.transaction();
+  try {
+    const fav = await Fav.destroy(
+      {
+        where: {
+          user_id: userId,
+          movie_id: movieId,
+        },
+      },
+      { transaction: t }
+    );
+    await t.commit();
+    return res.json({ fav });
+  } catch (error) {
+    console.error(error);
+    await t.rollback();
+    return res.status(400).send("Something went wrong");
+  }
+});
 
 app.listen(port, () => console.log(`Flex-Api listening on port ${port}!`));
