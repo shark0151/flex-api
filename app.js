@@ -48,7 +48,7 @@ app.use(cors({
 app.get("/", (req, res) => res.json({ message: "Hello World" }));
 app.use("/docs", swaggerUI.serve, swaggerUI.setup(specs));
 app.get('/csrfEndpoint', csrfProtection, (req, res, next) => {
-  res.cookie('XSRF-TOKEN', req.csrfToken(), { httpOnly: true });
+  res.cookie('XSRF-TOKEN', req.csrfToken(), { httpOnly: true , SameSite: 'None', Secure: true });
   return res.json({ message: "CSRF token set" });
 });
 
@@ -229,7 +229,7 @@ app.post("/signup", async (req, res) => {
       id: newuser.id,
       name: newuser.name
     }
-    res.cookie("user_id", user.id, { maxAge: 900000, httpOnly: false });
+    res.cookie("user_id", user.id, { maxAge: 900000, httpOnly: true , SameSite: 'None', Secure: true  });
     return res.json({ user });
   } catch (error) {
     console.error(error);
@@ -290,7 +290,7 @@ app.post("/login", async (req, res) => {
       id: authuser.id,
       name: authuser.name
     }
-    res.cookie("user_id", user.id, { maxAge: 900000, httpOnly: false })
+    res.cookie("user_id", user.id, { maxAge: 900000, httpOnly: true , SameSite: 'None', Secure: true  })
     return res.json({ user });
   } catch (error) {
     console.error(error);
