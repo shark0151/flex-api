@@ -139,8 +139,8 @@ app.get("/user/:userId", async (req, res) => {
       },
     });
     var user = {
-      id: auser.id,
-      name: auser.name
+      id: auser.user.id,
+      name: auser.user.name
     };
     return res.json({ user });
   } catch (error) {
