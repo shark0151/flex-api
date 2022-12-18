@@ -188,7 +188,7 @@ app.get("/user/:userId", csrfProtection ,  async (req, res) => {
  */
 
 
-app.post("/signup", async (req, res) => {
+app.post("/signup", csrfProtection, async (req, res) => {
   const { name, password } = req.body;
   const t = await sequelize.transaction();
   try {
@@ -218,10 +218,9 @@ app.post("/signup", async (req, res) => {
       id: newuser.id,
       name: newuser.name
     }
-
-    return res
-      .cookie("user_id", user.id, { maxAge: 900000, httpOnly: false })
-      .json({ user });
+    res.cookie('XSRF-TOKEN', req.csrfToken(), { httpOnly: false });
+    res.cookie("user_id", user.id, { maxAge: 900000, httpOnly: false });
+    return res.json({ user });
   } catch (error) {
     console.error(error);
     await t.rollback();
@@ -262,7 +261,7 @@ app.post("/signup", async (req, res) => {
  *         description: Logged in successfully
  */
 
-app.post("/login", async (req, res) => {
+app.post("/login", csrfProtection, async (req, res) => {
   const { name, password } = req.body;
   try {
     const authuser = await User.findOne({
@@ -281,9 +280,9 @@ app.post("/login", async (req, res) => {
       id: authuser.id,
       name: authuser.name
     }
-    return res
-      .cookie("user_id", user.id, { maxAge: 900000, httpOnly: false })
-      .json({ user });
+    res.cookie('XSRF-TOKEN', req.csrfToken(), { httpOnly: false });
+    res.cookie("user_id", user.id, { maxAge: 900000, httpOnly: false })
+    return res.json({ user });
   } catch (error) {
     console.error(error);
     return res.status(401).send("Wrong username or password");
@@ -341,7 +340,7 @@ app.post("/login", async (req, res) => {
  *                       is_TV: false
  */
 
-app.get("/favorites/:userId", async (req, res) => {
+app.get("/favorites/:userId",csrfProtection, async (req, res) => {
   const userId = req.params.userId;
   try {
     const favs = await Fav.findAll({
@@ -349,6 +348,7 @@ app.get("/favorites/:userId", async (req, res) => {
         user_id: userId,
       },
     });
+    res.cookie('XSRF-TOKEN', req.csrfToken(), { httpOnly: false });
     return res.json({ favs });
   } catch (error) {
     console.error(error);
@@ -418,7 +418,7 @@ app.get("/favorites/:userId", async (req, res) => {
  *                     is_TV: false
  */
 
-app.post("/favorites", async (req, res) => {
+app.post("/favorites",csrfProtection, async (req, res) => {
   const t = await sequelize.transaction();
   const { user_id, movie_id, is_TV } = req.body;
   try {
@@ -441,6 +441,7 @@ app.post("/favorites", async (req, res) => {
       is_TV: is_TV,
     });
     await t.commit();
+    res.cookie('XSRF-TOKEN', req.csrfToken(), { httpOnly: false });
     return res.json({ fav });
   } catch (error) {
     console.error(error);
@@ -488,7 +489,7 @@ app.post("/favorites", async (req, res) => {
  *                   example: true
  */
 
-app.get("/favorites/:userId/:movieId", async (req, res) => {
+app.get("/favorites/:userId/:movieId",csrfProtection, async (req, res) => {
   const userId = req.params.userId;
   const movieId = req.params.movieId;
   try {
@@ -499,6 +500,7 @@ app.get("/favorites/:userId/:movieId", async (req, res) => {
       },
     });
     const isfav = fav.length > 0;
+    res.cookie('XSRF-TOKEN', req.csrfToken(), { httpOnly: false });
     return res.json({ isfav });
   } catch (error) {
     console.error(error);
@@ -561,7 +563,7 @@ app.get("/favorites/:userId/:movieId", async (req, res) => {
  *                     is_TV: false
  */
 
-app.delete("/favorites/:userId/:movieId", async (req, res) => {
+app.delete("/favorites/:userId/:movieId", csrfProtection,async (req, res) => {
   const userId = req.params.userId;
   const movieId = req.params.movieId;
   const t = await sequelize.transaction();
@@ -576,6 +578,7 @@ app.delete("/favorites/:userId/:movieId", async (req, res) => {
       { transaction: t }
     );
     await t.commit();
+    res.cookie('XSRF-TOKEN', req.csrfToken(), { httpOnly: false });
     return res.json({ fav });
   } catch (error) {
     console.error(error);
