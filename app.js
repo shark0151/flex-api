@@ -2,6 +2,7 @@ var express = require("express");
 const cors = require("cors");
 const swaggerUI = require("swagger-ui-express");
 const swaggerJsDoc = require("swagger-jsdoc");
+var crypto = require('crypto');
 var cookieParser = require("cookie-parser");
 const port = process.env.PORT || 3001;
 const { Sequelize } = require("sequelize");
@@ -42,11 +43,15 @@ const User = sequelize.define(
     // attributes
     name: {
       type: Sequelize.STRING,
-      allowNull: false,
+      allowNull: false
     },
     password: {
       type: Sequelize.STRING,
-      allowNull: false,
+      allowNull: false
+    },
+    salt: {
+      type: Sequelize.STRING,
+      allowNull: false
     },
   },
   {
@@ -117,24 +122,24 @@ Fav.sync({ force: true }).then(() => { });
  *                     name:
  *                       type: string
  *                       description: Username
- *                     password:
- *                       type: string
- *                       description: Password
  *                   example:
  *                     id: 1
  *                     name: JohnnyBoy
- *                     password: Password123
  */
 
 
 app.get("/user/:userId", async (req, res) => {
   const userId = req.params.userId;
   try {
-    const user = await User.findAll({
+    const auser = await User.findOne({
       where: {
         id: userId,
       },
     });
+    var user = {
+      id: auser.id,
+      name: auser.name
+    };
     return res.json({ user });
   } catch (error) {
     console.error(error);
@@ -182,21 +187,26 @@ app.post("/signup", async (req, res) => {
   try {
     const a = await User.findAll({
       where: {
-        name: name,
-        password: password,
+        name: name
       },
     });
     if (a.length > 0) {
       return res.status(401).send("User already exists");
     }
-    const user = await User.create(
+    var salt = crypto.randomBytes(16);
+    const newuser = await User.create(
       {
         name: name,
-        password: password,
+        password: crypto.pbkdf2Sync(password, salt, 310000, 32, "sha256"),
+        salt: salt
       },
       { transaction: t }
     );
     await t.commit();
+    var user = {
+      id: newuser.id,
+      name: newuser.name
+    }
     return res
       .cookie("user_id", user.id, { maxAge: 900000, httpOnly: false })
       .json({ user });
@@ -243,16 +253,22 @@ app.post("/signup", async (req, res) => {
 app.post("/login", async (req, res) => {
   const { name, password } = req.body;
   try {
-    const user = await User.findOne({
+    const authuser = await User.findOne({
       where: {
         name: name,
-        password: password,
       },
     });
-    if (user === null) {
+    if (authuser === null) {
+      return res.status(401).send("Wrong username or password");
+    }
+    if (authuser.password !== crypto.pbkdf2Sync(password, authuser.salt, 310000, 32, "sha256")) {
       return res.status(401).send("Wrong username or password");
     }
 
+    var user = {
+      id: authuser.id,
+      name: authuser.name
+    }
     return res
       .cookie("user_id", user.id, { maxAge: 900000, httpOnly: false })
       .json({ user });
