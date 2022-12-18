@@ -6,7 +6,7 @@ var crypto = require('crypto');
 var cookieParser = require("cookie-parser");
 const port = process.env.PORT || 3001;
 const { Sequelize } = require("sequelize");
-const sequelize = new Sequelize("postgres://flex_user:w8EUofyBa0h6obRCmlFzlEW6xMjfgDFO@dpg-cead3qmn6mphc8t5t9ng-a/flex_db");
+const sequelize = new Sequelize("postgres://flex_user:w8EUofyBa0h6obRCmlFzlEW6xMjfgDFO@dpg-cead3qmn6mphc8t5t9ng-a/flex_db", { charset: "utf8", collate: "utf8_general_ci" });
 
 const options = {
   definition: {
@@ -29,6 +29,8 @@ const options = {
 };
 const specs = swaggerJsDoc(options);
 const app = express();
+
+
 
 app.use(express.json());
 app.use(cookieParser());
