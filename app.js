@@ -6,7 +6,7 @@ var crypto = require('crypto');
 var cookieParser = require("cookie-parser");
 const port = process.env.PORT || 3001;
 const { Sequelize } = require("sequelize");
-const sequelize = new Sequelize("postgres://flex_user:w8EUofyBa0h6obRCmlFzlEW6xMjfgDFO@dpg-cead3qmn6mphc8t5t9ng-a/flex_db", { charset: "utf8", collate: "utf8_general_ci" });
+const sequelize = new Sequelize("postgres://flex_user:w8EUofyBa0h6obRCmlFzlEW6xMjfgDFO@dpg-cead3qmn6mphc8t5t9ng-a/flex_db");
 
 const options = {
   definition: {
@@ -49,7 +49,7 @@ const User = sequelize.define(
     },
     password: {
       type: Sequelize.STRING,
-      allowNull: false
+      allowNull: false,
     },
     salt: {
       type: Sequelize.STRING,
@@ -195,11 +195,11 @@ app.post("/signup", async (req, res) => {
     if (a.length > 0) {
       return res.status(401).send("User already exists");
     }
-    var salt = crypto.randomBytes(16);
+    var salt = crypto.randomBytes(16).toString('base64');
     const newuser = await User.create(
       {
         name: name,
-        password: crypto.pbkdf2Sync(password, salt, 310000, 32, "sha256"),
+        password: crypto.createHash('RSA-SHA256').update(password).update(salt).digest('hex'),
         salt: salt
       },
       { transaction: t }
@@ -263,7 +263,7 @@ app.post("/login", async (req, res) => {
     if (authuser === null) {
       return res.status(401).send("Wrong username or password");
     }
-    if (authuser.password !== crypto.pbkdf2Sync(password, authuser.salt, 310000, 32, "sha256")) {
+    if (authuser.password !== crypto.createHash('RSA-SHA256').update(password).update(authuser.salt).digest('hex')) {
       return res.status(401).send("Wrong username or password");
     }
 
