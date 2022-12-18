@@ -35,12 +35,12 @@ var csrfProtection = csurf({ cookie: true })
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors({ origin: ["https://flex-app.onrender.com", "http://localhost:4200","130.225.244.180:4200"], credentials: true})); //{ origin: ["https://flex-app.onrender.com", "http://localhost:4200"], credentials: true}
+app.use(cors({ origin: ["https://flex-app.onrender.com", "http://localhost:4200",'http://127.0.0.1:4200',"130.225.244.180:4200"], credentials: true})); //{ origin: ["https://flex-app.onrender.com", "http://localhost:4200"], credentials: true}
 
 app.get("/", (req, res) => res.json({ message: "Hello World" }));
 app.use("/docs", swaggerUI.serve, swaggerUI.setup(specs));
 app.get('/csrfEndpoint', csrfProtection, (req, res, next) => {
-  res.cookie('XSRF-TOKEN', req.csrfToken(), { httpOnly: false });
+  res.cookie('XSRF-TOKEN', req.csrfToken(), { httpOnly: true });
   return res.json({ message: "CSRF token set" });
   });
 
