@@ -1,5 +1,6 @@
 var express = require("express");
 const cors = require("cors");
+const csurf = require("csurf");
 const swaggerUI = require("swagger-ui-express");
 const swaggerJsDoc = require("swagger-jsdoc");
 var crypto = require('crypto');
@@ -30,7 +31,7 @@ const options = {
 const specs = swaggerJsDoc(options);
 const app = express();
 
-
+var csrfProtection = csurf({ cookie: true })
 
 app.use(express.json());
 app.use(cookieParser());
@@ -130,7 +131,7 @@ Fav.sync({ force: true }).then(() => { });
  */
 
 
-app.get("/user/:userId", async (req, res) => {
+app.get("/user/:userId", csrfProtection ,  async (req, res) => {
   const userId = req.params.userId;
   try {
     const authuser = await User.findOne({
@@ -145,7 +146,7 @@ app.get("/user/:userId", async (req, res) => {
       id: authuser.id,
       name: authuser.name
     }
-    
+    res.cookie('XSRF-TOKEN', req.csrfToken(), { httpOnly: false });
     return res.json({ user });
   } catch (error) {
     console.error(error);
