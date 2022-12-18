@@ -138,11 +138,8 @@ app.get("/user/:userId", async (req, res) => {
         id: userId,
       },
     });
-    var user = {
-      id: auser.user.id,
-      name: auser.user.name
-    };
-    return res.json({ user });
+    
+    return res.json({ auser });
   } catch (error) {
     console.error(error);
   }
@@ -205,13 +202,10 @@ app.post("/signup", async (req, res) => {
       { transaction: t }
     );
     await t.commit();
-    var user = {
-      id: newuser.id,
-      name: newuser.name
-    }
+    
     return res
-      .cookie("user_id", user.id, { maxAge: 900000, httpOnly: false })
-      .json({ user });
+      .cookie("user_id", newuser.id, { maxAge: 900000, httpOnly: false })
+      .json({ newuser });
   } catch (error) {
     console.error(error);
     await t.rollback();
