@@ -31,10 +31,11 @@ const options = {
 const specs = swaggerJsDoc(options);
 const app = express();
 
-var csrfProtection = csurf({ cookie: true })
+
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(csurf({ cookie: true }));
 app.use(cors({
   origin: ["https://flex-app.onrender.com",
     "http://localhost:4200",
@@ -47,10 +48,7 @@ app.use(cors({
 
 app.get("/", (req, res) => res.json({ message: "Hello World" }));
 app.use("/docs", swaggerUI.serve, swaggerUI.setup(specs));
-app.get('/csrfEndpoint', csrfProtection, (req, res, next) => {
-  res.cookie('XSRF-TOKEN', req.csrfToken(), { httpOnly: true , SameSite: 'None', Secure: true });
-  return res.json({ message: "CSRF token set" });
-});
+
 
 const User = sequelize.define(
   "user",
