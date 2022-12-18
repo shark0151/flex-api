@@ -27,14 +27,6 @@ const options = {
   apis: ["./app.js"],
 };
 const specs = swaggerJsDoc(options);
-
-/**
- * @swagger
- * tags:
- *   name: API
- *   description: API for the Flex-App
- */
-
 const app = express();
 
 app.use(express.json());
@@ -275,7 +267,7 @@ app.post("/login", async (req, res) => {
  * /favorites/{userId}:
  *   get:
  *     summary: Get favorites of user
- *     tags: [Auth]
+ *     tags: [Favorites]
  *     parameters:
  *       - in: path
  *         name: userId
@@ -341,7 +333,7 @@ app.get("/favorites/:userId", async (req, res) => {
  * /favorites:
  *   post:
  *     summary: Add favorite
- *     tags: [Auth]
+ *     tags: [Favorites]
  *     requestBody:
  *       required: true
  *       content:
@@ -434,7 +426,7 @@ app.post("/favorites", async (req, res) => {
  * /favorites/{userId}/{movieId}:
  *   get:
  *     summary: Get favorites of user
- *     tags: [Auth]
+ *     tags: [Favorites]
  *     parameters:
  *       - in: path
  *         name: userId
@@ -491,7 +483,7 @@ app.get("/favorites/:userId/:movieId", async (req, res) => {
  * /favorites/{userId}/{movieId}:
  *   delete:
  *     summary: Delete favorite of user
- *     tags: [Auth]
+ *     tags: [Favorites]
  *     parameters:
  *       - in: path
  *         name: userId
