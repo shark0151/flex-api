@@ -133,13 +133,20 @@ Fav.sync({ force: true }).then(() => { });
 app.get("/user/:userId", async (req, res) => {
   const userId = req.params.userId;
   try {
-    const auser = await User.findOne({
+    const authuser = await User.findOne({
       where: {
         id: userId,
       },
     });
+    if (!authuser) {
+      return res.status(401).send("user not found");
+    }
+    var user = {
+      id: authuser.id,
+      name: authuser.name
+    }
     
-    return res.json({ auser });
+    return res.json({ user });
   } catch (error) {
     console.error(error);
   }
@@ -203,9 +210,17 @@ app.post("/signup", async (req, res) => {
     );
     await t.commit();
     
+    if (!newuser) {
+      return res.status(401).send("something went wrong");
+    }
+    var user = {
+      id: newuser.id,
+      name: newuser.name
+    }
+
     return res
-      .cookie("user_id", newuser.id, { maxAge: 900000, httpOnly: false })
-      .json({ newuser });
+      .cookie("user_id", user.id, { maxAge: 900000, httpOnly: false })
+      .json({ user });
   } catch (error) {
     console.error(error);
     await t.rollback();
