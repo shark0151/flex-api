@@ -48,7 +48,7 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-//app.use(csurf({ cookie: true }));
+app.use(csurf({ cookie: true }));
 
 
 app.get("/", (req, res) => res.json({ message: "Hello World" }));
