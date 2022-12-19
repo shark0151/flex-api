@@ -232,7 +232,7 @@ app.post("/signup", async (req, res) => {
       id: newuser.id,
       name: newuser.name
     }
-    res.cookie("user_id", user.id, { maxAge: 900000, httpOnly: true, SameSite: 'None', Secure: true });
+    //res.cookie("user_id", user.id, { maxAge: 900000, httpOnly: true, SameSite: 'None', Secure: true });
     return res.json({ user });
   } catch (error) {
     console.error(error);
@@ -293,7 +293,7 @@ app.post("/login", async (req, res) => {
       id: authuser.id,
       name: authuser.name
     }
-    res.cookie("user_id", user.id, { maxAge: 900000, httpOnly: true, SameSite: 'None', Secure: true })
+    //res.cookie("user_id", user.id, { maxAge: 900000, httpOnly: true, SameSite: 'None', Secure: true })
     return res.json({ user });
   } catch (error) {
     console.error(error);
