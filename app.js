@@ -1,6 +1,7 @@
 var express = require("express");
 const cors = require("cors");
 const csurf = require("csurf");
+var bodyParser = require('body-parser');
 const swaggerUI = require("swagger-ui-express");
 const swaggerJsDoc = require("swagger-jsdoc");
 var crypto = require('crypto');
@@ -32,19 +33,23 @@ const specs = swaggerJsDoc(options);
 const app = express();
 
 
-
-app.use(express.json());
-app.use(cookieParser());
-app.use(csurf({ cookie: true }));
 app.use(cors({
-  origin: ["https://flex-app.onrender.com",
+  origin: [
+    "https://flex-app.onrender.com",
     "http://localhost:4200",
     'http://127.0.0.1:4200',
-    "130.225.244.180:4200",
+    "130.225.244.180",
     '100.20.92.101',
     '44.225.181.72',
-    '44.227.217.144'], credentials: true
-})); //{ origin: ["https://flex-app.onrender.com", "http://localhost:4200"], credentials: true}
+    '44.227.217.144'],
+  credentials: true
+}));
+app.use(express.json());
+app.use(bodyParser.json());
+app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
+app.use(csurf({ cookie: true }));
+
 
 app.get("/", (req, res) => res.json({ message: "Hello World" }));
 app.use("/docs", swaggerUI.serve, swaggerUI.setup(specs));
@@ -227,7 +232,7 @@ app.post("/signup", async (req, res) => {
       id: newuser.id,
       name: newuser.name
     }
-    res.cookie("user_id", user.id, { maxAge: 900000, httpOnly: true , SameSite: 'None', Secure: true  });
+    res.cookie("user_id", user.id, { maxAge: 900000, httpOnly: true, SameSite: 'None', Secure: true });
     return res.json({ user });
   } catch (error) {
     console.error(error);
@@ -288,7 +293,7 @@ app.post("/login", async (req, res) => {
       id: authuser.id,
       name: authuser.name
     }
-    res.cookie("user_id", user.id, { maxAge: 900000, httpOnly: true , SameSite: 'None', Secure: true  })
+    res.cookie("user_id", user.id, { maxAge: 900000, httpOnly: true, SameSite: 'None', Secure: true })
     return res.json({ user });
   } catch (error) {
     console.error(error);
