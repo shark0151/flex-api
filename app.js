@@ -57,6 +57,7 @@ const app = express();
 app.use(cors({
   origin: [
     "https://flex-app.onrender.com",
+    "https://app.systemintegration.tk",
     "http://localhost:4200",
     'http://127.0.0.1:4200',
     "130.225.244.180",
