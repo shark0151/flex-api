@@ -70,9 +70,10 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-//app.use(doubleCsrfProtection);
+app.use(doubleCsrfProtection);
 
 app.get("/", (req, res) => res.json({ message: "Hello World" }));
+app.get("/csrf", (req, res) => res.render("send-csrf-token", { csrfToken: req.csrfToken() }));
 app.use("/docs", swaggerUI.serve, swaggerUI.setup(specs));
 
 
