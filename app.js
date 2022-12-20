@@ -11,6 +11,7 @@ const { Sequelize } = require("sequelize");
 const sequelize = new Sequelize("postgres://flex_user:w8EUofyBa0h6obRCmlFzlEW6xMjfgDFO@dpg-cead3qmn6mphc8t5t9ng-a/flex_db");
 
 const doubleCsrfOptions = {
+  getSecret: (req) => req.headers["X-XSRF-TOKEN"], // A function that returns the secret from the request
   cookieName: "flexy-psifi.x-csrf-token", // The name of the cookie to be used, recommend using Host prefix.
   cookieOptions: {
     httpOnly: false,
