@@ -1,6 +1,6 @@
 var express = require("express");
 const cors = require("cors");
-const csurf = require("csurf");
+const { doubleCsrf } = require("csrf-csrf");
 var bodyParser = require('body-parser');
 const swaggerUI = require("swagger-ui-express");
 const swaggerJsDoc = require("swagger-jsdoc");
@@ -9,6 +9,27 @@ var cookieParser = require("cookie-parser");
 const port = process.env.PORT || 3001;
 const { Sequelize } = require("sequelize");
 const sequelize = new Sequelize("postgres://flex_user:w8EUofyBa0h6obRCmlFzlEW6xMjfgDFO@dpg-cead3qmn6mphc8t5t9ng-a/flex_db");
+
+const doubleCsrfOptions = {
+  cookieName: "flexy-psifi.x-csrf-token", // The name of the cookie to be used, recommend using Host prefix.
+  cookieOptions: {
+    httpOnly: false,
+    sameSite: "none",  // Recommend you make this strict if posible
+    path: "/",
+    secure: false,
+  },
+  size: 64, // The size of the generated tokens in bits
+  ignoredMethods: ["GET", "HEAD", "OPTIONS"], // A list of request methods that will not be protected.
+  getTokenFromRequest: (req) => req.headers["X-XSRF-TOKEN"], // A function that returns the token from the request
+};
+
+const {
+  invalidCsrfTokenError, // This is just for convenience if you plan on making your own middleware.
+  generateToken, // Use this in your routes to provide a CSRF hash cookie and token.
+  validateRequest, // Also a convenience if you plan on making your own middleware.
+  doubleCsrfProtection, // This is the default CSRF protection middleware.
+} = doubleCsrf(doubleCsrfOptions);
+
 
 const options = {
   definition: {
@@ -48,13 +69,7 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(csurf({ cookie: true, ignoreMethods: ['GET', 'HEAD', 'OPTIONS'], name: 'XSRF-TOKEN' }));
-app.use(function (req, res, next) {
-  var csrfToken = req.csrfToken();
-  res.cookie('XSRF-TOKEN', csrfToken);
-  res.locals.csrftoken = csrfToken;
-  next();
-});
+app.use(doubleCsrfProtection);
 
 app.get("/", (req, res) => res.json({ message: "Hello World" }));
 app.use("/docs", swaggerUI.serve, swaggerUI.setup(specs));
