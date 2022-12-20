@@ -73,7 +73,11 @@ app.use(cookieParser());
 app.use(doubleCsrfProtection);
 
 app.get("/", (req, res) => res.json({ message: "Hello World" }));
-app.get("/csrf", (req, res) => res.render("send-csrf-token", { csrfToken: req.csrfToken() }));
+app.get("/csrf", (req, res) => {
+  const csrfToken = generateToken(res);
+  // You could also pass the token into the context of a HTML response.
+  return res.json({ csrfToken });
+});
 app.use("/docs", swaggerUI.serve, swaggerUI.setup(specs));
 
 
