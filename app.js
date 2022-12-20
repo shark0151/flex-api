@@ -48,8 +48,13 @@ app.use(express.json());
 app.use(bodyParser.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(csurf({ cookie: { key: XSRF - TOKEN } }));
-
+app.use(csurf({ cookie: true, ignoreMethods: ['GET', 'HEAD', 'OPTIONS'], name: 'XSRF-TOKEN' }));
+app.use(function (req, res, next) {
+  var csrfToken = req.csrfToken();
+  res.cookie('XSRF-TOKEN', csrfToken);
+  res.locals.csrftoken = csrfToken;
+  next();
+});
 
 app.get("/", (req, res) => res.json({ message: "Hello World" }));
 app.use("/docs", swaggerUI.serve, swaggerUI.setup(specs));
