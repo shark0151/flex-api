@@ -126,9 +126,7 @@ const Fav = sequelize.define(
   }
 );
 
-User.sync({ force: true }).then(() => { });
-
-Fav.sync({ force: true }).then(() => { });
+sequelize.sync();
 
 /**
  * @swagger
